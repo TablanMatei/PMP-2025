@@ -131,3 +131,16 @@ print()
 print("Log probability (score) :", logprob_score)
 print("Probability (score)     :", prob_score)
 print()
+
+hidden_state_names = states
+hidden_states = model.predict(observations_sequence)
+print("Most likely hidden states (test difficulties):")
+print([hidden_state_names[i] for i in hidden_states])
+
+
+log_probability, hidden_states_viterbi = model.decode(observations_sequence,  lengths = len(observations_sequence), algorithm='viterbi')
+
+print('Log Probability :',log_probability)
+print('Probability :',np.exp(log_probability))
+print("Most likely hidden states:")
+print([hidden_state_names[i] for i in hidden_states_viterbi])
