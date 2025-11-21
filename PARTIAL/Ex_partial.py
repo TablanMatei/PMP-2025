@@ -2,6 +2,8 @@ import pymc as pm
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import seaborn as sns
+from hmmlearn.hmm import CategoricalHMM
 
 #from pgmpy.models import BayesianNetwork  ------deprecated
 from pgmpy.models import DiscreteBayesianNetwork
@@ -69,3 +71,63 @@ posterior_p1 = infer.query(["H"], evidence={'C':'Comfortable'})
 posterior_p2 = infer.query(["E"], evidence={'C':'Comfortable'})
 print(posterior_p1)
 print(posterior_p2)
+
+
+
+
+#Exerictiul2
+states = ["Walking", "Running", "Resting"]
+n_states = len(states)
+print('Number of hidden states :',n_states)
+
+observations = ["Medium", "Low", "High"]
+n_observations = len(observations)
+print('Number of observations  :',n_observations)
+
+start_probability = np.array([1/3, 1/3, 1/3])
+
+transition_probability = np.array([
+    [0.6, 0.3, 0.1],
+    [0.2, 0.7, 0.1],
+    [0.3, 0.2, 0.5]
+])
+
+emission_probability = np.array([
+    [0.1, 0.7, 0.2],
+    [0.05, 0.25, 0.7],
+    [0.8, 0.15, 0.05]
+])
+
+model = CategoricalHMM(n_components=n_states)
+model.startprob_ = start_probability
+model.transmat_ = transition_probability
+model.emissionprob_ = emission_probability
+
+
+
+state_to_index = {"Medium": 0, "High": 1, "Low": 1}
+observations_sequence = np.array([[state_to_index[g]] for g in ["Medium","High","Low"]])
+
+
+G = nx.DiGraph()
+
+for i in range(n_states):
+    for j in range(n_states):
+        if transition_probability[i, j] > 0:
+            G.add_edge(states[i], states[j], weight=transition_probability[i, j])
+
+pos = nx.circular_layout(G)
+edges = G.edges(data=True)
+
+nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', arrows=True)
+edge_labels = {(u, v): f"{d['weight']:.2f}" for u, v, d in edges}
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+plt.show()
+
+logprob_score = model.score(observations_sequence)
+prob_score = np.exp(logprob_score)
+
+print()
+print("Log probability (score) :", logprob_score)
+print("Probability (score)     :", prob_score)
+print()
